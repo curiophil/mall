@@ -19,5 +19,6 @@ export default {
 
   .feature {
     border-bottom: 8px solid #eee;
+    background-color: #fff;
   }
 </style>

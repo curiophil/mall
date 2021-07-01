@@ -35,9 +35,11 @@ export default {
     })
 
     // 监听上拉事件
-    this.scroll.on("pullingUp", () => {
-      this.$emit('pullingUp')
-    })
+    if(this.pullUpLoad) {
+      this.scroll.on("pullingUp", () => {
+        this.$emit('pullingUp')
+      })
+    }
 
     // 监听滚动的位置
     this.scroll.on('scroll', position => {
@@ -52,7 +54,7 @@ export default {
       this.scroll.finishPullUp()
     },
     refresh() {
-      this.scroll.refresh()
+      this.scroll && this.scroll.refresh()
     }
   }
 }
