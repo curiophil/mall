@@ -30,8 +30,8 @@ import GoodsList from "@/components/content/goods/GoodsList";
 import Scroll from "@/components/common/scroll/Scroll";
 import BackTop from "@/components/content/backtop/BackTop";
 
-import {getHomeMultidata, getHomeGoods} from "@/network/network/home";
-import {debounce} from "@/common/utils";
+import {getHomeGoods, getHomeMultidata} from "@/network/network/home";
+import {imageListenerMixin} from "@/common/mixin";
 
 
 export default {
@@ -51,16 +51,17 @@ export default {
       banners: null,
       recommends: null,
       goods: {
-        pop: {page: 0, list: []},
-        new: {page: 0, list: []},
-        sell: {page: 0, list: []}
+        pop: {page: 0, list: [], saveY: 0},
+        new: {page: 0, list: [], saveY: 0},
+        sell: {page: 0, list: [], saveY: 0}
       },
       currentType: 'pop',
       isShowBackTop: false,
       tabOffsetTop: 0,
-      isTabFixed: false
+      isTabFixed: false,
     }
   },
+  mixins: [imageListenerMixin],
   created() {
     this.getHomeMultidata()
     this.getHomeGoods('pop')
@@ -68,15 +69,23 @@ export default {
     this.getHomeGoods('sell')
   },
   mounted() {
-    const refresh = debounce(this.$refs.scroll.refresh, 2000)
-    this.$bus.$on('itemImageLoad', () => {
-      refresh()
-    })
+
+  },
+  activated() {
+    // 回来时，滚动到上次离开保存的位置
+    this.$refs.scroll.scrollTo(0, this.goods[this.currentType].saveY, 0)
+    this.$refs.scroll.refresh()
+  },
+  deactivated() {
+    // 离开时，保存滚动到的位置
+    this.goods[this.currentType].saveY = this.$refs.scroll.scroll.y
+
+    this.$bus.$off('itemImageLoad', this.imageListener)
   },
   computed: {
     showGoods() {
       return this.goods[this.currentType].list
-    }
+    },
   },
   methods: {
     /**
@@ -134,6 +143,22 @@ export default {
       this.tabOffsetTop = this.$refs.tabControl2.$el.offsetTop
     }
 
+  },
+  watch: {
+    // 监听展示的类型
+    currentType(newVal, oldVal) {
+      // 保存离开时类型的滑动的距离
+      this.goods[oldVal].saveY = this.$refs.scroll.scroll.y
+      if(!this.isTabFixed) {
+        // 如果离开时，tab-control没有固定住，则新的类型应该滚动到和旧的类型一致
+        this.goods[newVal].saveY = this.goods[oldVal].saveY
+      }else if(this.goods[newVal].saveY > -this.tabOffsetTop) {
+        // 如果tab-control固定住，但新的类型的滚动距离没有达到使tab-control固定，则新的类型应该滚动到固定住的位置
+        this.goods[newVal].saveY = -this.tabOffsetTop
+      }
+      this.$refs.scroll.scrollTo(0, this.goods[newVal].saveY, 0)
+      this.$refs.scroll.refresh()
+    }
   }
 }
 </script>
