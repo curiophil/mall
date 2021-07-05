@@ -5,13 +5,13 @@ Vue.use(VueRouter)
 
 const Home = () => import('../views/home/Home')
 const Category = () => import('../views/category/Category')
-const ShopCart = () => import('../views/shopcart/ShopCart')
+const Cart = () => import('../views/shopcart/Cart')
 const Profile = () => import('../views/profile/Profile')
 const Detail = () => import('@/views/detail/Detail')
 
 const routes = [
   {
-    path: '',
+    path: '/',
     redirect: '/home'
   },
   {
@@ -24,7 +24,7 @@ const routes = [
   },
   {
     path: '/cart',
-    component: ShopCart
+    component: Cart
   },
   {
     path: '/profile',
@@ -37,7 +37,7 @@ const routes = [
 ]
 
 const router = new VueRouter({
-  mode: 'history',
+  mode: 'hash',
   routes
 });
 
